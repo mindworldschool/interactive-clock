@@ -15,13 +15,24 @@
       newTask:  {ua:"Нове завдання", en:"New task", ru:"Новое задание", es:"Nueva tarea"},
       check:    {ua:"Перевірка", en:"Check", ru:"Проверка", es:"Comprobar"},
       ok:       {ua:"СУПЕР!", en:"SUPER!", ru:"SUPER!", es:"¡SUPER!"},
-      retry:    {ua:"Спробуй ще раз", en:"Try again", ru:"Попробуй ещё раз", es:"Inténtalo otra vez"}
+      retry:    {ua:"Спробуй ще раз", en:"Try again", ru:"Попробуй ещё раз", es:"Inténtalo otra vez"},
+      // Подпись над табло
+      boardNow:   {ua:"Зараз", en:"Now", ru:"Сейчас", es:"Ahora"},
+      boardHands: {ua:"Стрілки показують", en:"The hands show", ru:"Стрелки показывают", es:"Las agujas marcan"},
+      boardTask:  {ua:"Постав стрілки", en:"Set the hands", ru:"Поставь стрелки", es:"Pon las agujas"},
+      // Что делать в каждом режиме
+      hintCurrent:{ua:"Годинник іде і показує справжній час.", en:"The clock is running and shows the real time.", ru:"Часы идут и показывают настоящее время.", es:"El reloj funciona y muestra la hora real."},
+      hintFree:   {ua:"Перетягуй стрілки — табло покаже, котра година.", en:"Drag the hands — the board shows what time it is.", ru:"Перетаскивай стрелки — табло покажет, который час.", es:"Arrastra las agujas: el marcador muestra la hora."},
+      hintTask:   {ua:"Постав стрілки на час із табло й натисни «Перевірка».", en:"Set the hands to the time on the board and press “Check”.", ru:"Поставь стрелки на время с табло и нажми «Проверка».", es:"Pon las agujas en la hora del marcador y pulsa «Comprobar»."},
+      // Подсказки для экранного диктора
+      modeAria:   {ua:"Режим годинника", en:"Clock mode", ru:"Режим часов", es:"Modo del reloj"},
+      trainAria:  {ua:"Режим тренування", en:"Training mode", ru:"Режим тренировки", es:"Modo de entrenamiento"}
     }
   };
 
   const dom = {
-    title: document.querySelector('.mws-title'),
-    switcher: document.querySelector('.lang-switch'),
+    boardLabel: document.getElementById('boardLabel'),
+    modeHint: document.getElementById('modeHint'),
     container: document.querySelector('.clock-scale'),
     face: document.querySelector('.face'),
     feedbackClip: document.querySelector('.feedback-clip'),
@@ -107,44 +118,21 @@
     }
   });
 
-  /* =============== LANGUAGE (UPDATED) =============== */
-  // 1. Функция для чтения ?lang=...
-  function getUrlParam(name) {
-    const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    const results = regex.exec(location.search);
-    return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-  }
-
-  // 2. Логика: Ссылка > Сохраненное > UA
-  const urlLang = getUrlParam('lang');
-  let lang = 'ua';
-
-  if (urlLang && i18n[urlLang]) {
-    lang = urlLang; // Если в ссылке есть язык (en/ru/es/ua) — используем его
-  } else {
-    lang = localStorage.getItem('mws_lang') || 'ua'; // Иначе берем сохраненный
-  }
+  /* =============== LANGUAGE =============== */
+  // Язык выбирает общая оболочка (trainer-shell): ?lang= → сохранённый выбор → браузер → украинский.
+  // Стартовый язык приходит в window.APP_LANG, смена — событием mw:langchange.
+  let lang = (window.APP_LANG in i18n) ? window.APP_LANG : 'ua';
 
   function setLang(l){
     lang = l in i18n ? l : 'ua';
-    localStorage.setItem('mws_lang', lang);
-    if(dom.title) dom.title.textContent = i18n[lang].title;
-    if(dom.switcher){
-      [...dom.switcher.querySelectorAll('button')].forEach(b=>{
-        b.classList.toggle('active', b.dataset.lang === lang);
-      });
-    }
     applyModeLabels();
     applyTaskLabels();
+    applyBoard();
   }
-  
-  dom.switcher?.addEventListener('click', e=>{
-    const b = e.target.closest('button[data-lang]');
-    if(!b) return;
-    setLang(b.dataset.lang);
+
+  document.addEventListener('mw:langchange', (e)=>{
+    if(e.detail && e.detail.lang) setLang(e.detail.lang);
   });
-  
-  setLang(lang);
 
   /* =============== SCALE BUILD =============== */
   const ticks = [], minuteLabels = [], hourLabels = [], hour24Labels = [];
@@ -404,6 +392,7 @@
       }
     }
     applyModeLabels();
+    applyBoard();
   }
 
   dom.modeSwitch?.addEventListener('click', (e)=>{
@@ -420,6 +409,7 @@
     const enableTask = (trainMode === 'task');
     setEnabled(dom.taskActions, enableTask);
     dom.taskTargetWrap?.classList.toggle('hidden', !enableTask);
+    applyBoard();
     if(mode === 'training'){
       if(enableTask){
         if(!target) randomTask(); else setDigital(target.h, target.m, null);
@@ -432,6 +422,20 @@
       }
     }
   });
+
+  /* =============== ТАБЛО И ПОДСКАЗКА =============== */
+  // Подпись над табло и строка «что делать» зависят от режима
+  function applyBoard(){
+    const ui = i18n.ui;
+    let label, hint;
+    if(mode === 'current'){ label = ui.boardNow; hint = ui.hintCurrent; }
+    else if(trainMode === 'task'){ label = ui.boardTask; hint = ui.hintTask; }
+    else { label = ui.boardHands; hint = ui.hintFree; }
+    if(dom.boardLabel) dom.boardLabel.textContent = label[lang] || label.ua;
+    if(dom.modeHint) dom.modeHint.textContent = hint[lang] || hint.ua;
+    if(dom.modeSwitch) dom.modeSwitch.setAttribute('aria-label', ui.modeAria[lang] || ui.modeAria.ua);
+    if(dom.trainSwitch) dom.trainSwitch.setAttribute('aria-label', ui.trainAria[lang] || ui.trainAria.ua);
+  }
 
   /* =============== i18n labels =============== */
   function applyModeLabels(){
