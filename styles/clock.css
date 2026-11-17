@@ -1,15 +1,15 @@
+/* Шрифт, фон, шапку и кнопки языков задаёт общая оболочка (trainer-shell/shell.v1.css).
+   Здесь — только часы и карточка управления. Раскладка как в кабинетной версии:
+   часы на карточке, рядом (на телефоне — под ними) табло и переключатели. */
+
 /* =============== VARIABLES =============== */
 :root{
-  --bg-orange: #EC8D00;
-  --card-beige: #FDF8F3;
+  /* цвета циферблата (Лео в центре нарисован под них) */
   --mws-gold:   #B68E6B;
   --mws-pumpkin:#E8654B;
   --mws-moss:   #7D733A;
   --mws-coral:  #EC8D00;
-  --mws-gray:   #C6B9A2;
-
-  /* размер карточки ограничиваем и шириной, и высотой окна */
-  --card-size: min(92vw, 780px, calc(100svh - 220px));
+  --bg-orange:  #EC8D00;
 
   /* адаптивная толщина линий */
   --rim:      clamp(3px, 0.6vw, 8px);
@@ -21,77 +21,39 @@
   --hand-minute: clamp(2px, 0.24vw, 6px);
   --hand-second: clamp(1.5px, 0.18vw, 5px);
 }
-@supports not (height: 100svh) {
-  :root{ --card-size: min(92vw, 780px, calc(100dvh - 260px)); }
-}
 
-/* =============== BASE =============== */
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
-body{
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-  background: var(--bg-orange);
-  color:#222;
-}
-
-/* top bar */
-.mws-topbar{
-  position:sticky; top:0; z-index:10;
-  background: var(--mws-coral); color:#fff;
-  display:flex; align-items:center; justify-content:space-between;
-  padding: clamp(8px, 1.8vw, 16px) clamp(12px, 2.4vw, 24px);
-  box-shadow: 0 4px 16px rgba(0,0,0,.12);
-}
-.mws-left,.mws-center,.mws-right{display:flex; align-items:center; gap:12px}
-.mws-center{justify-content:center; flex:1; text-align:center}
-.mws-logo{height:clamp(28px,4.2vw,44px); width:auto; display:block; filter:drop-shadow(0 2px 4px rgba(0,0,0,.15));}
-.mws-title{font-weight:800; letter-spacing:.3px; font-size:clamp(18px,3vw,28px);}
-.lang-switch{display:inline-flex; gap:6px; background: rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:4px;}
-.lang-switch button{appearance:none; border:0; background:transparent; color:#fff; padding:6px 10px; border-radius:999px; font-weight:700; cursor:pointer; font-size: clamp(12px, 2vw, 14px);}
-.lang-switch button.active{ background:#fff; color:#c24f00; }
 
 /* =============== LAYOUT =============== */
-/* без 100vh — не будет «бежевого хвоста» */
 .main-wrap{
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:flex-start;
-  padding:12px 12px 24px;
-  gap:10px;
-}
-.clock-shell{ width:100%; max-width:var(--card-size); }
-
-/* цифровые часы строго по ширине карточки */
-.digital-wrap{
-  width:var(--card-size);
-  margin:0 auto 8px;
-  display:flex; justify-content:center;
+  padding: 20px 16px 28px;
 }
 
-.digital{
-  background: rgba(0,0,0,.15);
-  color:#fff;
-  padding: 8px 16px;
-  border-radius: 14px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  font-size: clamp(20px, 4.2vw, 32px);
-  backdrop-filter: blur(2px);
+/* Часы слева, карточка управления справа.
+   Размер часов задаётся шириной, не высотой окна: во фрейме сайта высота
+   подстраивается под содержимое, и привязка к высоте раздувала бы часы. */
+.play-layout{
+  display: grid;
+  grid-template-columns: minmax(0, 560px) 300px;
+  justify-content: center;
+  align-items: start;
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-/* карточка */
+/* карточка с часами */
 .clock-card{
-  width: var(--card-size);
+  width: 100%;
   aspect-ratio: 1 / 1;
-  background: var(--card-beige);
-  border: 2px solid var(--mws-gold);
-  border-radius: 28px;
-  box-shadow: 0 16px 40px rgba(0,0,0,.12);
-  position:relative;
-  overflow:hidden;
-  display:grid; place-items:center;
-  padding: clamp(10px, 2.2vw, 20px);
-  z-index: 1;               /* ниже, чем блок с кнопками */
+  background: var(--bg-white, #fff);
+  border-radius: var(--radius, 16px);
+  box-shadow: var(--shadow-card, 0 12px 30px rgba(255, 124, 0, 0.15));
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: clamp(8px, 2vw, 18px);
 }
 
 /* сама сцена часов */
@@ -174,119 +136,137 @@ body{
 .confetti-wrap{ position:absolute; inset:6%; border-radius:50%; overflow:hidden; pointer-events:none; z-index:6; }
 .confetti-canvas{ width:100%; height:100%; display:block; }
 
-/* =============== CONTROLS UNDER CLOCK =============== */
-.controls-wrap{
-  width: var(--card-size);
-  margin: 10px auto 0;
-  position: relative;
-  z-index: 2; /* выше карточки — ничего не перекроется */
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: center;
-  column-gap: 12px;
-  row-gap: 10px; /* будет использовано только на мобилках при переносе */
+/* =============== КАРТОЧКА УПРАВЛЕНИЯ =============== */
+.controls-card{
+  background: var(--bg-white, #fff);
+  border-radius: var(--radius, 16px);
+  box-shadow: var(--shadow-card, 0 12px 30px rgba(255, 124, 0, 0.15));
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.controls-row{ justify-self: start; }
-.controls-row.center{ justify-self: center; }
-.controls-row.right{ justify-self: end; }
+/* табло: подпись + время */
+.board{
+  background: var(--bg-light, #fdfcf5);
+  border: 1px solid rgba(255, 124, 0, 0.2);
+  border-radius: var(--radius, 16px);
+  padding: 10px 12px 12px;
+  text-align: center;
+}
+.board-label{
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary, #7d733a);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 1em;
+}
+.digital{
+  display: block;
+  font-family: var(--font-title, "Baloo 2", cursive);
+  font-weight: 600;
+  font-size: 44px;
+  line-height: 1.1;
+  color: var(--primary, #ff7c00);
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+}
 
-/* «таблетки» */
+/* что делать в текущем режиме */
+.mode-hint{
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary, #7d733a);
+  text-align: center;
+}
+.mode-hint:empty{ display: none; }
+
+/* «таблетки» режимов — во всю ширину карточки */
 .pill-switch{
-  display:inline-flex; align-items:center; gap:8px;
-  background: rgba(255,255,255,.18);
-  border: 1px solid rgba(255,255,255,.35);
+  display: flex;
+  gap: 2px;
+  background: rgba(255, 124, 0, 0.08);
+  border: 1px solid rgba(255, 124, 0, 0.2);
   border-radius: 999px;
-  padding: 4px;
+  padding: 3px;
 }
 .pill-switch button{
-  appearance:none; border:0; background:transparent; color:#fff;
-  padding:6px 12px; border-radius:999px; font-weight:700; cursor:pointer;
-  font-size: clamp(12px, 2vw, 14px); white-space:nowrap;
+  flex: 1;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, #7d733a);
+  padding: 9px 10px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
 }
-.pill-switch button.active{ background:#fff; color:#c24f00; }
-.pill-switch.disabled{ opacity:.45; pointer-events:none; }
+.pill-switch button.active{ background: var(--primary, #ff7c00); color: #fff; }
 
-/* сообщение о задании */
-.task-msg-row{ margin-top:8px; text-align:center; color:#fff; font-weight:700; }
-.task-msg-row .task-target{ margin-bottom:4px; }
-.task-msg-row .task-title{ opacity:.9; margin-right:4px; }
-
-/* =============== МОБИЛЬНАЯ ВЕРСИЯ (ИСПРАВЛЕННАЯ) =============== */
-@media (max-width: 700px) {
-  
-  /* 1. Сбрасываем ограничения размера */
-  :root {
-    /* На телефоне карточка занимает ВСЮ ширину (минус отступы) */
-    /* Высота больше не ограничивает ширину, чтобы часы были крупными */
-    --card-size: 96vw; 
-    
-    /* Делаем стрелки тоньше на телефоне, чтобы было аккуратно */
-    --hand-hour:   8px;
-    --hand-minute: 6px;
-    --hand-second: 4px;
-    
-    /* Делаем засечки и цифры чуть меньше */
-    --rim: 4px;
-    --tick-w: 8px;
-    --tick-wM: 12px;
-  }
-
-  /* 2. Настраиваем макет, чтобы все влезло */
-  .main-wrap {
-    padding: 8px 8px 100px 8px; /* Большой отступ снизу для скролла */
-    justify-content: flex-start;
-    overflow-y: auto; /* Разрешаем скролл, если часы не влезли по высоте */
-  }
-
-  /* 3. Карточка часов */
-  .clock-card {
-    width: 100%;
-    max-width: none; /* Убираем лимиты */
-    aspect-ratio: 1 / 1; /* Квадрат */
-    margin-bottom: 12px;
-    padding: 8px; /* Уменьшаем внутренние поля */
-  }
-
-  /* 4. Кнопки управления (растягиваем на всю ширину) */
-  .controls-wrap {
-    grid-template-columns: 1fr; /* Одна колонка */
-    gap: 8px;
-    width: 100%;
-  }
-
-  .controls-row,
-  .controls-row.center,
-  .controls-row.right {
-    width: 100%;
-    justify-self: stretch;
-  }
-
-  /* 5. Сами кнопки (пилюли) */
-  .pill-switch {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .pill-switch button {
-    flex: 1; /* Кнопки растягиваются равномерно */
-    text-align: center;
-    justify-content: center;
-    padding: 8px 4px; /* Чуть меньше боковые отступы */
-    font-size: 13px; /* Шрифт чуть меньше, чтобы влез "Звичайний" */
-  }
-
-  /* 6. Цифровые часы покрупнее */
-  .digital {
-    font-size: 24px;
-    padding: 6px 12px;
-  }
+/* кнопки задания */
+.task-actions{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.task-actions button{
+  appearance: none;
+  border: 2px solid var(--primary, #ff7c00);
+  border-radius: var(--radius, 16px);
+  padding: 10px 8px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--primary-hover, #e06600);
+}
+.task-actions .btn-check{
+  background: var(--primary, #ff7c00);
+  color: #fff;
 }
 
-/* Специально для очень узких телефонов (iPhone SE и т.д.) */
-@media (max-width: 360px) {
-  .pill-switch button {
-    font-size: 11px;
+/* недоступно в текущем режиме */
+.controls-row.disabled{ opacity: .4; pointer-events: none; }
+
+/* сообщение о задании (сейчас скрыто: задание показывает табло) */
+.task-msg-row{ text-align:center; color: var(--text-secondary, #7d733a); font-weight:700; }
+.task-msg-row .task-title{ margin-right:4px; }
+
+/* =============== ТЕЛЕФОН И УЗКИЕ ЭКРАНЫ =============== */
+/* часы над карточкой управления */
+@media (max-width: 760px){
+  .play-layout{
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    max-width: 560px;
   }
+  .controls-card{ padding: 14px 12px; gap: 10px; }
+  .digital{ font-size: 38px; }
+}
+
+@media (max-width: 480px){
+  .main-wrap{ padding: 12px 10px 20px; }
+  .clock-card{ padding: 4px; }
+  /* на маленьком циферблате — линии тоньше, чтобы было аккуратно */
+  :root{
+    --hand-hour:   6px;
+    --hand-minute: 4px;
+    --hand-second: 2.5px;
+    --rim: 3px;
+    --tick-w: 7px;
+    --tick-wM: 11px;
+  }
+  .pill-switch button{ font-size: 13px; padding: 9px 4px; }
+  .digital{ font-size: 34px; }
+}
+
+@media (max-width: 340px){
+  .pill-switch button{ font-size: 12px; }
 }
